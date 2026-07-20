@@ -196,32 +196,7 @@ export function RelatedRail({ node }: { node: UINode }) {
   );
 }
 
-/**
- * SourcePicker — surfaces SourceBindings and RemoteLocation stream Parts (e.g.
- * Stremio addon results). A meta-only source yields none, and that's valid:
- * metadata can enrich local media without any stream to play.
- */
-export function SourcePicker({ node }: { node: UINode }) {
-  const { emit } = useRuntime();
-  const sources = prop<
-    Array<{ label: string; provider?: string; quality?: string; kind?: string; action?: Action }>
-  >(node, "sources", []);
-  if (sources.length === 0) {
-    return <p className="msc-sources__empty">No playable sources — metadata only.</p>;
-  }
-  return (
-    <div className="msc-sources">
-      {sources.map((s, i) => (
-        <button key={i} className="msc-source" onClick={() => emit(s.action)}>
-          <Icon name="play" className="msc-source__icon" />
-          <span className="msc-source__label">{s.label}</span>
-          {s.quality && <span className="msc-source__quality">{s.quality}</span>}
-          {s.provider && <span className="msc-source__provider">{s.provider}</span>}
-        </button>
-      ))}
-    </div>
-  );
-}
+// SourcePicker is now a primitive definition ($each over sources) — see definitions.ts.
 
 export function PlaybackBar({ node }: { node: UINode }) {
   const { emit } = useRuntime();
@@ -245,24 +220,7 @@ export function PlaybackBar({ node }: { node: UINode }) {
   );
 }
 
-export function PersonChip({ node }: { node: UINode }) {
-  const { emit } = useRuntime();
-  const name = prop<string>(node, "name", "");
-  const role = prop<string | undefined>(node, "role", undefined);
-  const avatar = prop<string | undefined>(node, "avatar", undefined);
-  const action = prop<Action | undefined>(node, "action", undefined);
-  return (
-    <button className="msc-person" onClick={() => emit(action)}>
-      <span className="msc-person__avatar">
-        {avatar ? <img src={avatar} alt="" loading="lazy" /> : <span aria-hidden>{name.slice(0, 1)}</span>}
-      </span>
-      <span className="msc-person__text">
-        <span className="msc-person__name">{name}</span>
-        {role && <span className="msc-person__role">{role}</span>}
-      </span>
-    </button>
-  );
-}
+// PersonChip is now a primitive definition — see definitions.ts.
 
 export function GenreTag({ node }: { node: UINode }) {
   const { emit } = useRuntime();

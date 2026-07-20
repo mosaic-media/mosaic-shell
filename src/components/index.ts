@@ -33,8 +33,8 @@ import {
   ProgressBar,
   Pagination,
 } from "./controls";
-import { HeroBanner, EpisodeRow, DetailHeader, SeasonSelector, RelatedRail, SourcePicker, PlaybackBar, PersonChip, GenreTag } from "./media";
-import { Skeleton, EmptyState, ErrorState, Banner, Badge, StatusIndicator } from "./feedback";
+import { HeroBanner, EpisodeRow, DetailHeader, SeasonSelector, RelatedRail, PlaybackBar, GenreTag } from "./media";
+import { Skeleton, ErrorState } from "./feedback";
 import { PLATFORM_DEFINITIONS } from "./definitions";
 
 let installed = false;
@@ -77,24 +77,23 @@ export function installComponents(): void {
     ProgressBar,
     Pagination,
 
-    // 2. native — media (step B moves the presentational ones to definitions)
+    // 2. native — media. HeroBanner stays native (needs gradient/bg-image, a
+    // vocab gap); EpisodeRow/DetailHeader use image thumbs + grid layout;
+    // SeasonSelector is interactive. PosterCard/PersonChip/SourcePicker moved
+    // to definitions.
     HeroBanner,
     EpisodeRow,
     DetailHeader,
     SeasonSelector,
     RelatedRail,
-    SourcePicker,
     PlaybackBar,
-    PersonChip,
     GenreTag,
 
-    // 2. native — feedback
+    // 2. native — feedback. Skeleton (keyframe animation) and ErrorState
+    // (category→tone mapping) stay native; Badge/Banner/StatusIndicator/
+    // EmptyState moved to definitions.
     Skeleton,
-    EmptyState,
     ErrorState,
-    Banner,
-    Badge,
-    StatusIndicator,
   });
 
   // 3. definitions — presentational components built from primitives.

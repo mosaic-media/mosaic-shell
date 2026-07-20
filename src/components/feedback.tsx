@@ -2,14 +2,17 @@
 // SPDX-FileCopyrightText: 2026 the Mosaic authors
 
 /*
- * Feedback & state components. The parts a media UI forgets until they hurt:
- * loading skeletons, empty states, error states (mapped to Platform error
- * categories), inline banners, badges and status dots.
+ * Feedback & state — the native leaves.
+ *
+ * Skeleton stays native: its shimmer is a keyframe animation, outside the
+ * static primitive vocabulary. ErrorState stays native: it maps a Platform
+ * error CATEGORY to a tone + title, logic a template can't compute. The purely
+ * presentational members (Badge, Banner, StatusIndicator, EmptyState) moved to
+ * primitive definitions in components/definitions.ts.
  */
 
 import type { Action, PlatformErrorCategory, Tone, UINode } from "@/sdui/types";
 import { prop } from "@/sdui/registry";
-import { Slot, hasSlot } from "@/sdui/Renderer";
 import { useRuntime } from "@/sdui/context";
 import { cx, Icon, type IconName } from "./shared";
 
@@ -46,26 +49,6 @@ export function Skeleton({ node }: { node: UINode }) {
   );
 }
 
-export function EmptyState({ node }: { node: UINode }) {
-  const icon = prop<IconName>(node, "icon", "grid");
-  const title = prop<string>(node, "title", "Nothing here yet");
-  const message = prop<string | undefined>(node, "message", undefined);
-  return (
-    <div className="msc-empty">
-      <span className="msc-empty__icon">
-        <Icon name={icon} />
-      </span>
-      <h3 className="msc-empty__title">{title}</h3>
-      {message && <p className="msc-empty__message">{message}</p>}
-      {hasSlot(node, "action") && (
-        <div className="msc-empty__action">
-          <Slot node={node} name="action" />
-        </div>
-      )}
-    </div>
-  );
-}
-
 export function ErrorState({ node }: { node: UINode }) {
   const { emit } = useRuntime();
   const category = prop<PlatformErrorCategory>(node, "category", "Internal");
@@ -84,37 +67,5 @@ export function ErrorState({ node }: { node: UINode }) {
         </button>
       )}
     </div>
-  );
-}
-
-export function Banner({ node }: { node: UINode }) {
-  const tone = prop<Tone>(node, "tone", "info");
-  const title = prop<string | undefined>(node, "title", undefined);
-  const message = prop<string>(node, "message", "");
-  return (
-    <div className={cx("msc-banner", `msc-banner--${tone}`)} role="status">
-      <Icon name={TONE_ICON[tone]} className="msc-banner__icon" />
-      <div className="msc-banner__body">
-        {title && <strong className="msc-banner__title">{title}</strong>}
-        <span className="msc-banner__message">{message}</span>
-      </div>
-    </div>
-  );
-}
-
-export function Badge({ node }: { node: UINode }) {
-  const label = prop<string>(node, "label", "");
-  const tone = prop<Tone>(node, "tone", "neutral");
-  return <span className={cx("msc-badge", `msc-badge--${tone}`)}>{label}</span>;
-}
-
-export function StatusIndicator({ node }: { node: UINode }) {
-  const tone = prop<Tone>(node, "tone", "neutral");
-  const label = prop<string | undefined>(node, "label", undefined);
-  return (
-    <span className="msc-status">
-      <span className={cx("msc-status__dot", `msc-status__dot--${tone}`)} />
-      {label && <span className="msc-status__label">{label}</span>}
-    </span>
   );
 }

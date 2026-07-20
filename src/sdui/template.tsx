@@ -10,12 +10,16 @@
  * — at build time or delivered in a payload at runtime.
  *
  * Template syntax, minimal on purpose:
- *   { "$bind": "paramName" }   as any prop value → the caller's arg (or default)
- *   props: { "$if": <binding> } on a node       → render only if truthy
- *   { "type": "Outlet", props: { name? } }       → the caller's children / slot
+ *   { "$bind": "path" }        as any prop value → the caller's arg. Dot paths
+ *                                                   ("s.label") walk objects.
+ *   { "$match": { on, cases, default } }          → pick a value by an enum
+ *   props: { "$if": <value> } on a node           → render only if truthy
+ *   props: { "$each": <array>, "$as": "s" }        → repeat the node per item,
+ *                                                   exposing s / sIndex
+ *   { "type": "Outlet", props: { name? } }         → the caller's children / slot
  *
- * Because the whole thing is JSON, a Flutter client implements the same three
- * rules and renders module components identically. No native code crosses the
+ * Because the whole thing is JSON, a Flutter client implements the same rules
+ * and renders module components identically. No native code crosses the
  * boundary — only definitions.
  */
 
@@ -35,17 +39,33 @@ export interface ComponentDefinition {
 
 type Args = Record<string, unknown>;
 
+function isObj(v: unknown): v is Record<string, unknown> {
+  return typeof v === "object" && v !== null;
+}
 function isBind(v: unknown): v is { $bind: string } {
-  return typeof v === "object" && v !== null && "$bind" in (v as Record<string, unknown>);
+  return isObj(v) && "$bind" in v;
+}
+function isMatch(v: unknown): v is { $match: { on: unknown; cases: Record<string, unknown>; default?: unknown } } {
+  return isObj(v) && "$match" in v;
 }
 
-/** Resolve a template value against args: replace bindings, recurse structures. */
+/** Walk a dot path ("s.label") through args/objects. */
+function getPath(root: unknown, path: string): unknown {
+  return path.split(".").reduce<unknown>((acc, key) => (isObj(acc) ? acc[key] : undefined), root);
+}
+
+/** Resolve a template value against args: bindings, matches, nested structures. */
 function resolveValue(v: unknown, args: Args): unknown {
-  if (isBind(v)) return args[v.$bind];
+  if (isBind(v)) return getPath(args, v.$bind);
+  if (isMatch(v)) {
+    const key = String(resolveValue(v.$match.on, args));
+    const chosen = key in v.$match.cases ? v.$match.cases[key] : v.$match.default;
+    return resolveValue(chosen, args);
+  }
   if (Array.isArray(v)) return v.map((x) => resolveValue(x, args));
-  if (v && typeof v === "object") {
+  if (isObj(v)) {
     const out: Record<string, unknown> = {};
-    for (const [k, val] of Object.entries(v as Record<string, unknown>)) out[k] = resolveValue(val, args);
+    for (const [k, val] of Object.entries(v)) out[k] = resolveValue(val, args);
     return out;
   }
   return v;
@@ -65,6 +85,20 @@ function expandNode(tmpl: UINode, args: Args, host: UINode): UINode[] {
   }
 
   const rawProps = tmpl.props ?? {};
+
+  // $each — repeat this node once per item of a bound array, exposing the item
+  // (and its index) under $as. The repeated node is expanded without $each.
+  if ("$each" in rawProps) {
+    const arr = resolveValue(rawProps.$each, args);
+    if (!Array.isArray(arr)) return [];
+    const as = (rawProps.$as as string | undefined) ?? "item";
+    const rest: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(rawProps)) {
+      if (k !== "$each" && k !== "$as") rest[k] = val;
+    }
+    const bare: UINode = { type: tmpl.type, id: tmpl.id, props: rest, children: tmpl.children, slots: tmpl.slots };
+    return arr.flatMap((item, i) => expandNode(bare, { ...args, [as]: item, [`${as}Index`]: i }, host));
+  }
 
   // $if guard — drop the node (and its subtree) when the condition is falsy.
   if ("$if" in rawProps && !resolveValue(rawProps.$if, args)) {

@@ -42,6 +42,10 @@ export type ColorToken =
   | "warning"
   | "danger"
   | "info"
+  | "success-quiet"
+  | "warning-quiet"
+  | "danger-quiet"
+  | "info-quiet"
   | "rating"
   | "border"
   | "border-strong";

@@ -44,6 +44,12 @@
   --color-danger: #ef5f6b;
   --color-info: #5b8cff;
 
+  /* Quiet tints of the status colours (badge / banner / status backgrounds) */
+  --color-success-quiet: rgba(63, 191, 127, 0.16);
+  --color-warning-quiet: rgba(230, 176, 85, 0.18);
+  --color-danger-quiet: rgba(239, 95, 107, 0.16);
+  --color-info-quiet: rgba(91, 140, 255, 0.16);
+
   /* Media chrome */
   --color-rating: #ffc857;
   --color-progress-track: rgba(255, 255, 255, 0.16);
@@ -78,6 +84,11 @@
   --color-warning: #b9822a;
   --color-danger: #d23f4b;
   --color-info: #3f6fe0;
+
+  --color-success-quiet: rgba(31, 157, 99, 0.14);
+  --color-warning-quiet: rgba(185, 130, 42, 0.16);
+  --color-danger-quiet: rgba(210, 63, 75, 0.13);
+  --color-info-quiet: rgba(63, 111, 224, 0.12);
 
   --color-rating: #d99a1f;
   --color-progress-track: rgba(16, 20, 30, 0.14);
