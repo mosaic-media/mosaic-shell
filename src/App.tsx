@@ -15,6 +15,13 @@ import { Gallery } from "@/gallery/Gallery";
 
 type Theme = "dark" | "light";
 
+/** Recently-watched thumbs shown in the sidebar's Library section. */
+const RECENT = [
+  { title: "Cowboy Bebop", art: "cowboy-bebop" },
+  { title: "Dune", art: "dune" },
+  { title: "Frieren", art: "frieren" },
+];
+
 interface Route {
   screen: string;
   params?: Record<string, unknown>;
@@ -79,7 +86,21 @@ export function App() {
                 <span>{item.label}</span>
               </button>
             ))}
-            <div className="msc-sidebar__sep" />
+          </nav>
+          <div className="msc-sidebar__label">Library</div>
+          <div className="msc-sidebar__recent">
+            {RECENT.map((r) => (
+              <button
+                key={r.art}
+                className="msc-sidebar__thumb"
+                title={r.title}
+                onClick={() => navigate("detail", { title: r.title })}
+              >
+                <img src={`/art/${r.art}.svg`} alt={r.title} />
+              </button>
+            ))}
+          </div>
+          <nav className="msc-sidebar__nav">
             <button
               className={`msc-navitem${current.screen === "__gallery" ? " is-active" : ""}`}
               onClick={() => go("__gallery")}
@@ -89,6 +110,16 @@ export function App() {
             </button>
           </nav>
           <div className="msc-sidebar__foot">
+            <button className="msc-usercard" onClick={() => go("settings")}>
+              <span className="msc-avatar" aria-hidden>
+                S
+              </span>
+              <span className="msc-usercard__info">
+                <span className="msc-usercard__name">Shikikan</span>
+                <span className="msc-usercard__role">Administrator</span>
+              </span>
+              <Icon name="chevron-down" />
+            </button>
             <span className="msc-sidebar__version">shell v0.0.1 · skeleton</span>
           </div>
         </aside>
@@ -98,22 +129,38 @@ export function App() {
             <div className="msc-topbar__left">
               {stack.length > 1 && (
                 <button className="msc-iconbtn msc-iconbtn--ghost" aria-label="Back" onClick={back}>
-                  <Icon name="chevron-right" style={{ transform: "rotate(180deg)" }} />
+                  <Icon name="chevron-left" />
                 </button>
               )}
               <span className="msc-topbar__crumb">{titleFor(current.screen)}</span>
             </div>
+            <div className="msc-search msc-topbar__search">
+              <span className="msc-search__icon">
+                <Icon name="search" size="1em" />
+              </span>
+              <input
+                className="msc-search__input"
+                placeholder="Search for anime, movies, shows…"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") go("search");
+                }}
+              />
+            </div>
             <div className="msc-topbar__right">
+              <button
+                className="msc-iconbtn msc-iconbtn--ghost"
+                aria-label="Settings"
+                onClick={() => go("settings")}
+              >
+                <Icon name="settings" />
+              </button>
               <button
                 className="msc-iconbtn msc-iconbtn--ghost"
                 aria-label="Toggle theme"
                 onClick={() => setTheme((t) => (t === "dark" ? "light" : "dark"))}
               >
-                <Icon name={theme === "dark" ? "star" : "info"} />
+                <Icon name={theme === "dark" ? "moon" : "sun"} />
               </button>
-              <span className="msc-avatar" aria-hidden>
-                A
-              </span>
             </div>
           </header>
 

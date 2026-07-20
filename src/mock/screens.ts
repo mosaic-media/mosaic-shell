@@ -46,35 +46,184 @@ function rail(title: string, items: UINode[], seeAll = true): UINode {
   };
 }
 
+// ── concept-layout home: hero card + info aside, season episode rail, and a
+//    Top Cast / You May Also Like / My Progress panel row — all composed from
+//    the standard SDUI vocabulary (no bespoke components).
+
+const infoRow = (label: string, value: string): UINode => ({
+  type: "Box",
+  props: { style: { direction: "row", align: "center", justify: "between", gap: 3 } },
+  children: [
+    { type: "Text", props: { text: label, style: { variant: "xs", color: "text-muted" } } },
+    { type: "Text", props: { text: value, style: { variant: "xs", weight: "medium" } } },
+  ],
+});
+
+const ratingRow = (value: string, source: string): UINode => ({
+  type: "Box",
+  props: { style: { direction: "row", align: "center", gap: 3 } },
+  children: [
+    { type: "Icon", props: { name: "star", color: "rating", size: 18 } },
+    {
+      type: "Box",
+      children: [
+        { type: "Text", props: { text: value, style: { variant: "lg", weight: "bold" } } },
+        { type: "Text", props: { text: source, style: { variant: "xs", color: "text-faint" } } },
+      ],
+    },
+  ],
+});
+
+const heroAside: UINode = {
+  type: "Box",
+  props: { style: { minWidth: 235, p: 4, gap: 3, radius: "lg", bg: "surface", glass: true, border: true, shadow: "2" } },
+  children: [
+    ratingRow("8.9", "AniList"),
+    ratingRow("9.0", "IMDb"),
+    { type: "Divider" },
+    { type: "Text", props: { text: "Information", style: { variant: "xs", color: "text-faint", transform: "uppercase" } } },
+    infoRow("Studio", "Sunrise"),
+    infoRow("Source", "Original"),
+    infoRow("Episodes", "26"),
+    infoRow("Status", "Ended"),
+  ],
+};
+
+const episodeCard = (n: number, title: string, runtime: string, art: string): UINode => ({
+  type: "Pressable",
+  props: {
+    action: { kind: "playPart", partId: `ep-${n}` },
+    lift: true,
+    style: { position: "relative", radius: "md", overflow: "hidden", aspectRatio: "16 / 9", bg: "surface-raised", border: true },
+  },
+  children: [
+    { type: "Image", props: { src: art, fit: "cover", style: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, width: "full", height: "full" } } },
+    {
+      type: "Box",
+      props: { style: { position: "absolute", top: 2, left: 2, bg: "surface-overlay", glass: true, radius: "sm", px: 2, py: 1, border: true } },
+      children: [{ type: "Text", props: { text: String(n), style: { variant: "xs", weight: "bold" } } }],
+    },
+    {
+      type: "Box",
+      props: { style: { position: "absolute", left: 0, right: 0, bottom: 0, bgGradient: { from: "bg", to: "transparent", angle: 0 }, p: 3, pt: 5 } },
+      children: [
+        { type: "Text", props: { text: title, style: { variant: "sm", weight: "medium", lineClamp: 1 } } },
+        { type: "Text", props: { text: runtime, style: { variant: "xs", color: "text-muted" } } },
+      ],
+    },
+  ],
+});
+
+const panel = (title: string, children: UINode[]): UINode => ({
+  type: "Box",
+  props: { style: { flex: 1, minWidth: 280, p: 5, gap: 4, radius: "xl", bg: "surface", border: true } },
+  children: [{ type: "Text", props: { text: title, style: { weight: "bold" } } }, ...children],
+});
+
+const miniPoster = (title: string): UINode => ({
+  type: "Pressable",
+  props: {
+    action: { kind: "navigate", screen: "detail", params: { title } },
+    lift: true,
+    label: title,
+    style: { position: "relative", width: 76, aspectRatio: "2 / 3", radius: "sm", overflow: "hidden", bg: "surface-raised", border: true },
+  },
+  children: [
+    { type: "Image", props: { src: ART[title], fit: "cover", placeholder: title, style: { position: "absolute", top: 0, right: 0, bottom: 0, left: 0, width: "full", height: "full" } } },
+  ],
+});
+
 const home: UINode = {
   type: "Screen",
   children: [
     {
       type: "HeroBanner",
       props: {
-        title: "Spirited Away",
-        backdrop: "/art/hero-spirited.svg",
-        meta: ["2001", "Anime Film", "PG"],
+        kicker: "Continue watching",
+        title: "Cowboy Bebop",
+        nativeTitle: "カウボーイビバップ",
+        backdrop: "/art/hero-bebop.svg",
+        meta: ["1998", "TV-14", "Action, Sci-Fi, Space Western", "1 Season"],
         overview:
-          "A young girl wanders into a world of spirits and must find the courage to free her parents and return home.",
+          "The bounty-hunting adventures of the Bebop crew as they chase down the galaxy's most dangerous criminals — for cash they'll spend before the next job.",
       },
       slots: {
         actions: [
-          { type: "Button", props: { label: "Play", icon: "play", variant: "primary", action: { kind: "playPart", partId: "demo-part" } } },
-          { type: "Button", props: { label: "Details", variant: "secondary", ...nav("detail", { title: "Spirited Away" }) } },
+          { type: "Button", props: { label: "Resume S1 E12", icon: "play", variant: "primary", action: { kind: "playPart", partId: "ep-12" } } },
+          { type: "Button", props: { label: "Watchlist", icon: "plus", variant: "secondary", action: { kind: "toast", message: "Added to watchlist", tone: "success" } } },
+          { type: "Button", props: { label: "Details", variant: "secondary", ...nav("detail", { title: "Cowboy Bebop" }) } },
         ],
+        aside: heroAside,
       },
     },
-    rail(
-      "Continue watching",
-      [
-        posterCard("Cowboy Bebop", "Anime Series", { subtitle: "S1 · E12", progress: 0.6, badge: "12 min left" }),
-        posterCard("Dune", "Film", { subtitle: "1h 41m in", progress: 0.75 }),
-        posterCard("Severance", "Series", { subtitle: "S1 · E3", progress: 0.2 }),
-        posterCard("Frieren", "Anime Series", { subtitle: "S1 · E8", progress: 0.45 }),
+    {
+      type: "Stack",
+      props: { gap: 3 },
+      children: [
+        {
+          type: "Box",
+          props: { style: { direction: "row", align: "center", justify: "between", gap: 3, wrap: true } },
+          children: [
+            { type: "SeasonSelector", props: { seasons: [{ id: "s1", label: "Season 1" }, { id: "film", label: "The Movie" }] } },
+            { type: "Pagination", props: { label: "", hasPrev: false, hasNext: true, nextAction: { kind: "toast", message: "More episodes" } } },
+          ],
+        },
+        {
+          type: "Carousel",
+          props: { itemWidth: 260 },
+          children: [
+            episodeCard(10, "Ganymede Elegy", "24m", "/art/bebop-ep1.svg"),
+            episodeCard(11, "Toys in the Attic", "24m", "/art/bebop-ep2.svg"),
+            episodeCard(12, "Jupiter Jazz (Part 1)", "24m", "/art/bebop-ep3.svg"),
+            episodeCard(13, "Jupiter Jazz (Part 2)", "24m", "/art/bebop-ep4.svg"),
+            episodeCard(14, "Bohemian Rhapsody", "24m", "/art/bebop-ep5.svg"),
+          ],
+        },
       ],
-      false,
-    ),
+    },
+    {
+      type: "Box",
+      props: { style: { direction: "row", gap: 4, wrap: true } },
+      children: [
+        panel("Top Cast", [
+          {
+            type: "Stack",
+            props: { gap: 2 },
+            children: [
+              { type: "PersonChip", props: { name: "Kōichi Yamadera", role: "Spike Spiegel" } },
+              { type: "PersonChip", props: { name: "Unshō Ishizuka", role: "Jet Black" } },
+              { type: "PersonChip", props: { name: "Megumi Hayashibara", role: "Faye Valentine" } },
+            ],
+          },
+        ]),
+        panel("You May Also Like", [
+          {
+            type: "Stack",
+            props: { direction: "horizontal", gap: 3, wrap: true },
+            children: [miniPoster("Chainsaw Man"), miniPoster("Your Name"), miniPoster("Blade Runner 2049"), miniPoster("Frieren")],
+          },
+        ]),
+        panel("My Progress", [
+          {
+            type: "Box",
+            props: { style: { direction: "row", align: "center", gap: 5 } },
+            children: [
+              { type: "ProgressRing", props: { value: 0.46 } },
+              {
+                type: "Box",
+                props: { style: { gap: 1 } },
+                children: [
+                  { type: "Text", props: { text: "Last watched", style: { variant: "xs", color: "text-faint", transform: "uppercase" } } },
+                  { type: "Text", props: { text: "S1 E12 · Jupiter Jazz", style: { variant: "sm", weight: "medium" } } },
+                  { type: "Text", props: { text: "12 of 26 episodes", style: { variant: "xs", color: "text-muted" } } },
+                ],
+              },
+            ],
+          },
+          { type: "Button", props: { label: "Continue watching", icon: "play", variant: "primary", action: { kind: "playPart", partId: "ep-12" } } },
+        ]),
+      ],
+    },
     rail("Recently added", [
       posterCard("Blade Runner 2049", "Film"),
       posterCard("Chainsaw Man", "Anime Series", { badge: "NEW" }),
@@ -246,9 +395,8 @@ export const SCREENS: Record<string, UINode> = {
   settings: moduleSettings,
 };
 
-export const NAV_ITEMS: Array<{ screen: string; label: string; icon: "grid" | "search" | "list" | "play" }> = [
-  { screen: "home", label: "Home", icon: "play" },
+export const NAV_ITEMS: Array<{ screen: string; label: string; icon: "home" | "grid" | "search" | "list" | "play" }> = [
+  { screen: "home", label: "Home", icon: "home" },
   { screen: "browse", label: "Browse", icon: "grid" },
   { screen: "search", label: "Search", icon: "search" },
-  { screen: "settings", label: "Settings", icon: "list" },
 ];
