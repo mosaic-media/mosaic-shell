@@ -24,6 +24,8 @@ export default defineConfig({
       // Artwork the Platform proxies (ADR 0030) — same-origin so the artlight
       // canvas is readable without any CORS.
       "/artwork": { target: platform, changeOrigin: true },
+      // The live session WebSocket (ADR 0032).
+      "/live": { target: platform, changeOrigin: true, ws: true },
     },
   },
 });
